@@ -2,7 +2,7 @@ package com.journaldev.app.messaging.asb;
 /**
  * 
  */
-
+ 
 import java.beans.ExceptionListener;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,7 +90,7 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 	
 	public synchronized void processMsg(Message message) throws JMSException,
 			 IOException {
-		System.out.println("Received message with JMSMessageID = "
+		System.out.println("Received message from ASB with JMSMessageID = "
 				+ message.getJMSMessageID());
 		
 		if (message instanceof TextMessage) {
