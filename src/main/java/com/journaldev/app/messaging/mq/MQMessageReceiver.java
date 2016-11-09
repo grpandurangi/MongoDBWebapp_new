@@ -34,6 +34,7 @@ public class MQMessageReceiver {
 	
 	public MQMessageReceiver() throws IOException, MQException {
 		init();
+		System.out.println("MQ Receiver is ready");
 	}
 	
 	/**
@@ -72,16 +73,15 @@ public class MQMessageReceiver {
 	 * @throws MQException
 	 */
 	public void readMessageFromQueue() throws MQException {
-		System.out.println("Receive message process started");
 		// Specify the queue that we wish to open, and the open options...
 	    MQQueue queue = queueManager.accessQueue(queueName,openOptions);
 	    
 	    // Check if there are messages in the MQ
 	    int depth = queue.getCurrentDepth(); 
-	    System.out.println("Current depth: " + depth); 
 	    if (depth == 0) { 
 	    	return; 
 	    } 
+	    System.out.println("Current depth: " + depth); 
 	    
 	    MQMessage retrievedMessage = new MQMessage();
 	    retrievedMessage.characterSet = AppConstants.CHARSET_ENCODING_UTF8;
@@ -106,7 +106,6 @@ public class MQMessageReceiver {
 		        thereAreMessages = false;
 	        }
 	    } 
-    	System.out.println("Receive message process ended");
 	}
 	
 	/**
@@ -134,6 +133,7 @@ public class MQMessageReceiver {
     	byte[] bytes = new byte[retrievedMessage.getMessageLength()];
     	retrievedMessage.readFully(bytes);
     	String msgText = new String(bytes, AppConstants.UTF_8);
+    	System.out.println("Message received from MQ with messageId = "+ retrievedMessage.messageId);
     	
     	Gson gson = new Gson();
     	Person p = gson.fromJson(msgText, Person.class);

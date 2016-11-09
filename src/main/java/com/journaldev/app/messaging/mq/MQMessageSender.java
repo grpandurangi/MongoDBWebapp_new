@@ -35,6 +35,7 @@ public class MQMessageSender {
 	 */
 	public MQMessageSender() throws MQException, IOException {
 		init();
+		System.out.println("MQ sender is ready");
 	}
 	
 	/**
@@ -74,7 +75,6 @@ public class MQMessageSender {
 	 * Send message to MQ
 	 */
 	public void sendMessage(String message) throws MQException {
-		System.out.println("Send Message Process started");
 				
 		// Now specify the queue that we wish to open, and the open options...
 		MQQueue destQueue = qMgr.accessQueue(queueName, openOptions);
@@ -92,14 +92,13 @@ public class MQMessageSender {
 																	// defaults
 
 			destQueue.put(inputMsg, pmo); // Put message to queue
-			System.out.println("Message sent with messageId: " + randomMessageID);
+			System.out.println("Message sent to MQ with messageId: " + randomMessageID);
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 //	    System.out.println("OUTPUTQ1 size:" + destQueue.getCurrentDepth());
 	    destQueue.close();
-	    System.out.println("Send Message Process ended");
 	}
 	
 	/**

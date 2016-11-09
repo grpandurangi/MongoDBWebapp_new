@@ -56,6 +56,7 @@ public class MessageSender implements ExceptionListener {
         queue = (Destination) context.lookup("QUEUE");
         
         initializeConnection();
+        System.out.println("ASB sender is ready");
 	}
 	
 	/**
@@ -96,7 +97,7 @@ public class MessageSender implements ExceptionListener {
 				initMessage(message, msg);
 				sender.send(message);
 			}
-			System.out.println("Sent message with JMSMessageID = " + message.getJMSMessageID());
+			System.out.println("Sent message to ASB with JMSMessageID = " + message.getJMSMessageID());
 			message = null;
 		} 
     }
