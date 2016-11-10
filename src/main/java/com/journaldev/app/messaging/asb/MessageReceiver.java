@@ -2,8 +2,7 @@ package com.journaldev.app.messaging.asb;
 /**
  * 
  */
- 
-import java.beans.ExceptionListener;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -11,6 +10,7 @@ import java.util.Properties;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -136,22 +136,7 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 		System.out.println("Person deleted successfully with id=" + person.getId());
 	}
 
-	@Override
-	public void exceptionThrown(Exception e) {
-		System.err.println("Error in receiver connection, Retrying to connect...");
-		try {
-			close();
-		} catch (JMSException ex) {
-			System.err.println(ex.getLocalizedMessage());
-		}
-		try {
-			initializeConnection();
-		} catch (JMSException e1) {
-			e1.printStackTrace();
-		}
-	}
-
-	private void close() throws JMSException {
+	public void close() throws JMSException {
 		if(connection!= null) {
     		connection.stop();
     	}
@@ -179,6 +164,21 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
         receiver = receiveSession.createConsumer(queue);
         receiver.setMessageListener(this);
         connection.start();
+	}
+
+	@Override
+	public void onException(JMSException arg0) {
+		System.err.println("Error in receiver connection, Retrying to connect...");
+		/*try {
+			close();
+		} catch (JMSException ex) {
+			System.err.println(ex.getLocalizedMessage());
+		}*/
+		try {
+			initializeConnection();
+		} catch (JMSException e1) {
+			e1.printStackTrace();
+		}
 	}
 	
 }

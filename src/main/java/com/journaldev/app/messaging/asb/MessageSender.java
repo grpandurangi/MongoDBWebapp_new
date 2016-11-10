@@ -139,11 +139,11 @@ public class MessageSender implements ExceptionListener {
    	@Override
 	public void onException(JMSException exception) {
 		System.err.println("Error in sender connection, Retrying to connect...");
-		try {
+		/*try {
 			close();
 		} catch (JMSException e) {
 			System.err.println(e.getLocalizedMessage());
-		}
+		}*/
 		try {
 			initializeConnection();
 		} catch (JMSException e) {
