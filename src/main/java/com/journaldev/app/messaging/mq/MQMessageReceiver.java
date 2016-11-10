@@ -106,6 +106,7 @@ public class MQMessageReceiver {
 		        thereAreMessages = false;
 	        }
 	    } 
+	    queue.close();
 	}
 	
 	/**
