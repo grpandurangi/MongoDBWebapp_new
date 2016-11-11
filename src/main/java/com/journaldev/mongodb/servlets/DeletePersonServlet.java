@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.journaldev.mongodb.dao.DAOException;
 import com.journaldev.mongodb.dao.MongoDBPersonDAO;
 import com.journaldev.mongodb.model.Person;
 import com.mongodb.MongoClient;
@@ -30,11 +31,21 @@ public class DeletePersonServlet extends HttpServlet {
 		MongoDBPersonDAO personDAO = new MongoDBPersonDAO(mongo);
 		Person p = new Person();
 		p.setId(id);
-		personDAO.deletePerson(p);
-		System.out.println("Person deleted successfully with id=" + id);
-		request.setAttribute("success", "Person deleted successfully");
-		List<Person> persons = personDAO.readAllPerson();
-		request.setAttribute("persons", persons);
+		try {
+			personDAO.deletePerson(p);
+			System.out.println("Person deleted successfully with id=" + id);
+			request.setAttribute("success", "Person deleted successfully");
+		} catch (DAOException e1) {
+			e1.printStackTrace();
+		}
+		
+		List<Person> persons;
+		try {
+			persons = personDAO.readAllPerson();
+			request.setAttribute("persons", persons);
+		} catch (DAOException e) {
+			e.printStackTrace();
+		}
 
 		RequestDispatcher rd = getServletContext().getRequestDispatcher(
 				"/index.jsp");

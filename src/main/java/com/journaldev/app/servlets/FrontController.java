@@ -18,6 +18,7 @@ import com.journaldev.app.messaging.asb.MessageReceiver;
 import com.journaldev.app.messaging.asb.MessageSender;
 import com.journaldev.app.messaging.mq.MQMessageReceiver;
 import com.journaldev.app.messaging.mq.MQMessageSender;
+import com.journaldev.mongodb.dao.DAOException;
 import com.journaldev.mongodb.dao.MongoDBPersonDAO;
 import com.journaldev.mongodb.model.Person;
 import com.journaldev.mongodb.model.Person.OPERATION;
@@ -97,6 +98,7 @@ public class FrontController extends HttpServlet {
 								System.err.println(e.getLocalizedMessage());
 							}
 						}
+//						mqReceiver.close();
 					}
 				}
 			});
@@ -136,9 +138,14 @@ public class FrontController extends HttpServlet {
 			}
 		}
 		if(uri.endsWith("viewPersonPage.do")) {
-			List<Person> persons = personDAO.readAllPerson();
-			request.setAttribute("persons", persons);
-			
+			List<Person> persons;
+			try {
+				persons = personDAO.readAllPerson();
+				request.setAttribute("persons", persons);
+			} catch (DAOException e) {
+				e.printStackTrace();
+				request.setAttribute("error", "Something went wrong");
+			}
 			target = "/viewPersons.jsp";	
 		}
 		if(uri.endsWith("searchPersonPage.do")) {
@@ -156,42 +163,50 @@ public class FrontController extends HttpServlet {
 				request.setAttribute("error", "Mandatory Parameters Missing");
 				target = "/updateCountryPage.jsp";
 			} else {
-				List<Person> personList = personDAO.readAllPerson();
-				for (Person person : personList) {
-					person.setCountry(country);
-					person.setOperation(OPERATION.EDIT);
-					String msg = gson.toJson(person);
-					try {
-						messageSender.sendMessage(msg);
-						request.setAttribute("success", "Country updated for all");
-					} catch (JMSException e) {
-						System.err.println(e.getLocalizedMessage());
-						target = "/updateCountryPage.jsp";
-						request.setAttribute("error", "Unable to update country for all.");
+				List<Person> personList = null;
+				try {
+					personList = personDAO.readAllPerson();
+					for (Person person : personList) {
+						person.setCountry(country);
+						person.setOperation(OPERATION.EDIT);
+						String msg = gson.toJson(person);
+						try {
+							messageSender.sendMessage(msg);
+							request.setAttribute("success", "Country updated for all");
+						} catch (JMSException e) {
+							System.err.println(e.getLocalizedMessage());
+							target = "/updateCountryPage.jsp";
+							request.setAttribute("error", "Unable to update country for all.");
+						}
 					}
+				} catch (DAOException e1) {
+					e1.printStackTrace();
+					request.setAttribute("error", "Something went wrong");
 				}
 			}
 		}
 		if(uri.endsWith("search.do")) {
 			Person p = new Person();
 			p.setName(request.getParameter("name"));
-			p = personDAO.searchPerson(p);
-			if(p == null) {
+			try {
+				p = personDAO.searchPerson(p);
+				if(p == null) {
+					request.setAttribute("error", "No data found");
+				} else {
+					request.setAttribute("person", p);
+				}
+			} catch (DAOException e) {
 				request.setAttribute("error", "No data found");
-			} else {
-				request.setAttribute("person", p);
 			}
 			target = "/searchPerson.jsp";
 		}
 		if(uri.endsWith("editPerson.do")) {
 			try {
 				target = sendEditPersonDetail(request, response);
-			} catch (NamingException e) {
+			} catch (NamingException | JMSException e ) {
 				e.printStackTrace();
-			} catch (JMSException e) {
-				e.printStackTrace();
+				request.setAttribute("error", "Something went wrong");
 			}
-			
 		}
 		RequestDispatcher rd = request.getRequestDispatcher(target);
 		rd.forward(request, response);
@@ -275,13 +290,17 @@ public class FrontController extends HttpServlet {
 			
 			String msg = gson.toJson(p);
 			messageSender.sendMessage(msg);
-			
-			Person p2 = personDAO.readPerson(p);
-			
-			request.setAttribute("person", p2);
 			System.out.println("Person details are sent for edit and will be updated shortly with id=" + id);
 			request.setAttribute("success", "Person details are sent for edit and will be updated shortly");
 			
+			Person p2;
+			try {
+				p2 = personDAO.readPerson(p);
+				request.setAttribute("person", p2);
+			} catch (DAOException e) {
+				e.printStackTrace();
+				request.setAttribute("error", "Something went wrong");
+			}
 			return "/searchPerson.jsp";
 		}
 	}

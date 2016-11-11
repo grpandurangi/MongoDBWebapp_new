@@ -16,6 +16,7 @@ import com.ibm.mq.MQQueue;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
 import com.journaldev.app.constant.AppConstants;
+import com.journaldev.mongodb.dao.DAOException;
 import com.journaldev.mongodb.dao.MongoDBPersonDAO;
 import com.journaldev.mongodb.model.Person;
 
@@ -31,6 +32,7 @@ public class MQMessageReceiver {
 	private int openOptions;
 	
 	private MongoDBPersonDAO messageDao;
+	private MQQueue queue;
 	
 	public MQMessageReceiver() throws IOException, MQException {
 		init();
@@ -66,6 +68,10 @@ public class MQMessageReceiver {
 		// MQOO_INPUT_AS_Q_DEF = Open the queue to get messages using the queue-defined default.
 		// MQOO_INQUIRE = Open the object to query attributes.
 	    openOptions = CMQC.MQOO_INPUT_AS_Q_DEF | CMQC.MQOO_OUTPUT | CMQC.MQOO_INQUIRE;
+	    
+	    // Establish access to an WebSphere MQ queue on this queue manager 
+ 		// using default queue manager name and alternative user ID values.
+ 	    queue = queueManager.accessQueue(queueName,openOptions);
 	}
 	
 	/**
@@ -73,8 +79,6 @@ public class MQMessageReceiver {
 	 * @throws MQException
 	 */
 	public void readMessageFromQueue() throws MQException {
-		// Specify the queue that we wish to open, and the open options...
-	    MQQueue queue = queueManager.accessQueue(queueName,openOptions);
 	    
 	    // Check if there are messages in the MQ
 	    int depth = queue.getCurrentDepth(); 
@@ -88,25 +92,29 @@ public class MQMessageReceiver {
 	    MQGetMessageOptions gmo = new MQGetMessageOptions(); // Accept defaults
 
 	    boolean thereAreMessages=true;
-	    // Repeats until all message in MQ are read
-	    while(thereAreMessages){
-	        try {
-	        	queue.get(retrievedMessage, gmo);		// Retrieve message from MQ
-		    	try {
-		    		processMessage(retrievedMessage);	// Read and process message
-		    		clearMessageBody(retrievedMessage);	// Clear Retrieved Message
-				} catch (IOException e) {
+//	    try {
+	    	// Repeats until all message in MQ are read
+		    while(thereAreMessages){
+		        try {
+		        	queue.get(retrievedMessage, gmo);		// Retrieve message from MQ
+		    		processMessage(retrievedMessage);		// Read and process message
+		    		clearMessageBody(retrievedMessage);		// Clear Retrieved Message
+		        } catch(MQException e){
+			        if(e.reasonCode == CMQC.MQRC_NO_MSG_AVAILABLE) {
+			            System.err.println("No more message available");
+			        }
+			        // All messages are read
+			        thereAreMessages = false;
+		        } catch (IOException e) {
 					e.printStackTrace();
-				} 
-	        } catch(MQException e){
-		        if(e.reasonCode == CMQC.MQRC_NO_MSG_AVAILABLE) {
-		            System.err.println("No more message available");
-		        }
-		        // All messages are read
-		        thereAreMessages = false;
-	        }
-	    } 
-	    queue.close();
+				} catch (DAOException e) {
+					e.printStackTrace();
+				}
+		    } 
+		    /*} finally {
+			 queue.close();
+			 queueManager.disconnect();    // Ends the connection to the queue manager.
+		}*/
 	}
 	
 	/**
@@ -129,7 +137,7 @@ public class MQMessageReceiver {
 	 * @throws IOException
 	 * @throws DAOException 
 	 */
-	private void processMessage(MQMessage retrievedMessage) throws MQException, IOException {
+	private void processMessage(MQMessage retrievedMessage) throws MQException, IOException, DAOException {
 		// Get file name
     	byte[] bytes = new byte[retrievedMessage.getMessageLength()];
     	retrievedMessage.readFully(bytes);
@@ -148,6 +156,7 @@ public class MQMessageReceiver {
 	 * @throws MQException
 	 */
 	public void close() throws MQException {
+		queue.close();
 		if(queueManager != null) {
 			queueManager.disconnect();
 			queueManager.close();

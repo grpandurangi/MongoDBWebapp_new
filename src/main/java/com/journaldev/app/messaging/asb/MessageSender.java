@@ -146,6 +146,7 @@ public class MessageSender implements ExceptionListener {
 		}*/
 		try {
 			initializeConnection();
+			System.out.println("Sender connection successful");
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}

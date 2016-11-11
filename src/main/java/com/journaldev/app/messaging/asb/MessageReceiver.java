@@ -22,6 +22,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import com.google.gson.Gson;
+import com.journaldev.mongodb.dao.DAOException;
 import com.journaldev.mongodb.dao.MongoDBPersonDAO;
 import com.journaldev.mongodb.model.Person;
 
@@ -89,7 +90,7 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 	}
 	
 	public synchronized void processMsg(Message message) throws JMSException,
-			 IOException {
+			 IOException, DAOException {
 		System.out.println("Received message from ASB with JMSMessageID = "
 				+ message.getJMSMessageID());
 		
@@ -121,17 +122,17 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 		}
 	}
 	
-	private void savePerson(Person person) {
+	private void savePerson(Person person) throws DAOException {
 		personDAO.createPerson(person);
 		System.out.println("Person added successfully with id=" + person.getId());
 	}
 
-	private void updatePerson(Person person) {
+	private void updatePerson(Person person) throws DAOException {
 		personDAO.updatePerson(person);
 		System.out.println("Person updated successfully with id=" + person.getId());
 	}
 	
-	private void deletePerson(Person person) {
+	private void deletePerson(Person person) throws DAOException {
 		personDAO.deletePerson(person);
 		System.out.println("Person deleted successfully with id=" + person.getId());
 	}
@@ -176,6 +177,7 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 		}*/
 		try {
 			initializeConnection();
+			System.out.println("Receiver connection successful");
 		} catch (JMSException e1) {
 			e1.printStackTrace();
 		}

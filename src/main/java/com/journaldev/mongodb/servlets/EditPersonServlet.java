@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.journaldev.mongodb.dao.DAOException;
 import com.journaldev.mongodb.dao.MongoDBPersonDAO;
 import com.journaldev.mongodb.model.Person;
 import com.mongodb.MongoClient;
@@ -30,9 +31,12 @@ public class EditPersonServlet extends HttpServlet {
 		MongoDBPersonDAO personDAO = new MongoDBPersonDAO(mongo);
 		Person p = new Person();
 		p.setId(id);
-		p = personDAO.readPerson(p);
+		try {
+			p = personDAO.readPerson(p);
+		} catch (DAOException e) {
+			e.printStackTrace();
+		}
 		request.setAttribute("person", p);
-
 		RequestDispatcher rd = getServletContext().getRequestDispatcher(
 				"/editPerson.jsp");
 		rd.forward(request, response);
@@ -68,7 +72,11 @@ public class EditPersonServlet extends HttpServlet {
 			p.setId(id);
 			p.setName(name);
 			p.setCountry(country);
-			personDAO.updatePerson(p);
+			try {
+				personDAO.updatePerson(p);
+			} catch (DAOException e) {
+				e.printStackTrace();
+			}
 			request.setAttribute("person", p);
 			System.out.println("Person edited successfully with id=" + id);
 			request.setAttribute("success", "Person edited successfully");

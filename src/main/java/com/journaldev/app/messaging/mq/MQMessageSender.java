@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
+
+import javax.jms.ExceptionListener;
+import javax.jms.JMSException;
+
 import com.ibm.mq.MQEnvironment;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQMessage;
@@ -19,12 +23,13 @@ import com.ibm.mq.constants.CMQC;
  * @author rprasad017
  * <p>Sends messages to WebSphere MQ</p>
  */
-public class MQMessageSender {
+public class MQMessageSender implements ExceptionListener {
 	
 	private MQQueueManager qMgr;
 	private int openOptions;
 	private String queueName;
 	private String queuemanagerName;
+	private MQQueue destQueue;
 	
 	private static Random randomGenerator = new Random();
 	
@@ -60,24 +65,28 @@ public class MQMessageSender {
 		MQEnvironment.port = Integer.valueOf(config.getProperty("env.port"));
 		MQEnvironment.channel = config.getProperty("env.channel");
 		
-		// Open a connection to the queue manager
-		qMgr = new MQQueueManager(queuemanagerName);
-		
 		// Set up the options on the queue we wish to open...
 		// MQOO_OUTPUT - Open the queue to put messages.
 		// MQOO_INPUT_AS_Q_DEF - Open the queue to get messages using the queue-defined default.
 	    openOptions = CMQC.MQOO_INPUT_AS_Q_DEF | CMQC.MQOO_OUTPUT ;
 		
 //		openOptions = CMQC.MQOO_INQUIRE + CMQC.MQOO_FAIL_IF_QUIESCING + CMQC.MQOO_INPUT_SHARED;
+	    
+	    initConnection();
 	}
 	
+	private void initConnection() throws MQException {
+		// Open a connection to the queue manager
+		qMgr = new MQQueueManager(queuemanagerName);
+		// Establish access to an WebSphere MQ queue on this queue manager 
+ 		// using default queue manager name and alternative user ID values.
+ 		destQueue = qMgr.accessQueue(queueName, openOptions);
+	}
+
 	/**
 	 * Send message to MQ
 	 */
 	public void sendMessage(String message) throws MQException {
-				
-		// Now specify the queue that we wish to open, and the open options...
-		MQQueue destQueue = qMgr.accessQueue(queueName, openOptions);
 		
 		try {
 			// Construct input message
@@ -96,9 +105,12 @@ public class MQMessageSender {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		} /*finally {
+			destQueue.close();
+			qMgr.disconnect();	// Ends the connection to the queue manager.
+		}*/
 //	    System.out.println("OUTPUTQ1 size:" + destQueue.getCurrentDepth());
-	    destQueue.close();
+	    
 	}
 	
 	/**
@@ -106,10 +118,22 @@ public class MQMessageSender {
 	 * @throws MQException
 	 */
 	public void close() throws MQException {
+		destQueue.close();
 		if(qMgr != null) {
 			qMgr.disconnect();
 			qMgr.close();
 		}
 		qMgr = null;
+	}
+
+	@Override
+	public void onException(JMSException arg0) {
+		System.err.println("Error in MQ Sender connection");
+		try {
+			initConnection();
+			System.out.println("MQ connected");
+		} catch (MQException e) {
+			e.printStackTrace();
+		}
 	}
 }

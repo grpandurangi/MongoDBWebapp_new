@@ -20,53 +20,78 @@ public class MongoDBPersonDAO {
 
 	private DBCollection col;
 
+	@SuppressWarnings("deprecation")
 	public MongoDBPersonDAO(MongoClient mongo) {
 		this.col = mongo.getDB(System.getProperty("MONGODB_AUTHDB")).getCollection("Persons");
 	}
 
-	public Person createPerson(Person p) {
-		DBObject doc = PersonConverter.toDBObject(p);
-		this.col.insert(doc);
-		ObjectId id = (ObjectId) doc.get("_id");
-		p.setId(id.toString());
-		return p;
-	}
-
-	public void updatePerson(Person p) {
-		DBObject query = BasicDBObjectBuilder.start()
-				.append("_id", new ObjectId(p.getId())).get();
-		this.col.update(query, PersonConverter.toDBObject(p));
-	}
-
-	public List<Person> readAllPerson() {
-		List<Person> data = new ArrayList<Person>();
-		DBCursor cursor = col.find();
-		while (cursor.hasNext()) {
-			DBObject doc = cursor.next();
-			Person p = PersonConverter.toPerson(doc);
-			data.add(p);
+	public Person createPerson(Person p) throws DAOException {
+		try {
+			DBObject doc = PersonConverter.toDBObject(p);
+			this.col.insert(doc);
+			ObjectId id = (ObjectId) doc.get("_id");
+			p.setId(id.toString());
+			return p;
+		} catch (Exception e) {
+			throw new DAOException(e.getLocalizedMessage(), e);
 		}
-		return data;
 	}
 
-	public void deletePerson(Person p) {
-		DBObject query = BasicDBObjectBuilder.start()
-				.append("_id", new ObjectId(p.getId())).get();
-		this.col.remove(query);
+	public void updatePerson(Person p) throws DAOException {
+		try {
+			DBObject query = BasicDBObjectBuilder.start()
+					.append("_id", new ObjectId(p.getId())).get();
+			this.col.update(query, PersonConverter.toDBObject(p));
+		} catch (Exception e) {
+			throw new DAOException(e.getLocalizedMessage(), e);
+		}
 	}
 
-	public Person readPerson(Person p) {
-		DBObject query = BasicDBObjectBuilder.start()
-				.append("_id", new ObjectId(p.getId())).get();
-		DBObject data = this.col.findOne(query);
-		return PersonConverter.toPerson(data);
+	public List<Person> readAllPerson() throws DAOException {
+		List<Person> data = new ArrayList<Person>();
+		try {
+			DBCursor cursor = col.find();
+			while (cursor.hasNext()) {
+				DBObject doc = cursor.next();
+				Person p = PersonConverter.toPerson(doc);
+				data.add(p);
+			}
+			return data;
+		} catch (Exception e) {
+			throw new DAOException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	public void deletePerson(Person p) throws DAOException {
+		try {
+			DBObject query = BasicDBObjectBuilder.start()
+					.append("_id", new ObjectId(p.getId())).get();
+			this.col.remove(query);
+		} catch (Exception e) {
+			throw new DAOException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	public Person readPerson(Person p) throws DAOException {
+		try {
+			DBObject query = BasicDBObjectBuilder.start()
+					.append("_id", new ObjectId(p.getId())).get();
+			DBObject data = this.col.findOne(query);
+			return PersonConverter.toPerson(data);
+		} catch (Exception e) {
+			throw new DAOException(e.getLocalizedMessage(), e);
+		}
 	}
 	
-	public Person searchPerson(Person p) {
-		DBObject query = BasicDBObjectBuilder.start()
-				.append("name", p.getName()).get();
-		DBObject data = this.col.findOne(query);
-		return PersonConverter.toPerson(data);
+	public Person searchPerson(Person p) throws DAOException {
+		try {
+			DBObject query = BasicDBObjectBuilder.start()
+					.append("name", p.getName()).get();
+			DBObject data = this.col.findOne(query);
+			return PersonConverter.toPerson(data);
+		} catch (Exception e) {
+			 throw new DAOException(e.getLocalizedMessage(), e);
+		}
 	}
 
 }

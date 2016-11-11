@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.journaldev.mongodb.dao.DAOException;
 import com.journaldev.mongodb.dao.MongoDBPersonDAO;
 import com.journaldev.mongodb.model.Person;
 import com.mongodb.MongoClient;
@@ -35,7 +36,11 @@ public class AddPersonServlet extends HttpServlet {
 			MongoClient mongo = (MongoClient) request.getServletContext()
 					.getAttribute("MONGO_CLIENT");
 			MongoDBPersonDAO personDAO = new MongoDBPersonDAO(mongo);
-			personDAO.createPerson(p);
+			try {
+				personDAO.createPerson(p);
+			} catch (DAOException e) {
+				e.printStackTrace();
+			}
 			System.out.println("Person Added Successfully with id="+p.getId());
 			request.setAttribute("success", "Person Added Successfully");
 
