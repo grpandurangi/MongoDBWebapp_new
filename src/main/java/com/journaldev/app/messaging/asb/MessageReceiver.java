@@ -159,6 +159,7 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 	private void initializeConnection() throws JMSException {
 		// Create Connection
         connection = cf.createConnection();
+        connection.setExceptionListener(this);
 		
 		// Create receiver-side Session, MessageConsumer,and MessageListener
         receiveSession = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
