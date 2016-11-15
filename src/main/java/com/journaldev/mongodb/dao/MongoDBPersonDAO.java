@@ -19,9 +19,11 @@ import com.mongodb.MongoClient;
 public class MongoDBPersonDAO {
 
 	private DBCollection col;
+//	private MongoClient mongo;
 
 	@SuppressWarnings("deprecation")
 	public MongoDBPersonDAO(MongoClient mongo) {
+//		this.mongo = mongo;
 		this.col = mongo.getDB(System.getProperty("MONGODB_AUTHDB")).getCollection("Persons");
 	}
 
@@ -58,6 +60,9 @@ public class MongoDBPersonDAO {
 			}
 			return data;
 		} catch (Exception e) {
+			/*if(e instanceof MongoSocketReadException) {
+				mongo.close();
+			}*/
 			throw new DAOException(e.getLocalizedMessage(), e);
 		}
 	}

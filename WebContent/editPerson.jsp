@@ -40,36 +40,5 @@ table,th,td {
 		</form>
 	</c:if>
 
-	<%-- Persons List Logic --%>
-	<c:if test="${not empty requestScope.persons}">
-		<table>
-			<tbody>
-				<tr>
-					<th>ID</th>
-					<th>Name</th>
-					<th>Country</th>
-					<th>Edit</th>
-					<th>Delete</th>
-				</tr>
-				<c:forEach items="${requestScope.persons}" var="person">
-					<c:url value="/editPerson" var="editURL">
-						<c:param name="id" value="${person.id}"></c:param>
-					</c:url>
-					<c:url value="/deletePerson" var="deleteURL">
-						<c:param name="id" value="${person.id}"></c:param>
-					</c:url>
-					<tr>
-						<td><c:out value="${person.id}"></c:out></td>
-						<td><c:out value="${person.name}"></c:out></td>
-						<td><c:out value="${person.country}"></c:out></td>
-						<td><a
-							href='<c:out value="${editURL}" escapeXml="true"></c:out>'>Edit</a></td>
-						<td><a
-							href='<c:out value="${deleteURL}" escapeXml="true"></c:out>'>Delete</a></td>
-					</tr>
-				</c:forEach>
-			</tbody>
-		</table>
-	</c:if>
 </body>
 </html>

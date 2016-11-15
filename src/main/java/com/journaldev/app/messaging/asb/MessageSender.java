@@ -33,6 +33,8 @@ public class MessageSender implements ExceptionListener {
 	private Connection connection;
     private Session sendSession;
     private MessageProducer sender;
+    private volatile boolean doSend = true;
+    
     private static Random randomGenerator = new Random();
 
 	/**
@@ -61,16 +63,19 @@ public class MessageSender implements ExceptionListener {
 	
 	/**
 	 * Initialize connection
+	 * @return 
 	 * @throws JMSException
 	 */
-	private void initializeConnection() throws JMSException {
+	private boolean initializeConnection() throws JMSException {
 		// Create Connection
-        connection = cf.createConnection();
-        connection.setExceptionListener(this);
-        
-        // Create sender-side Session and MessageProducer
-        sendSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        sender = sendSession.createProducer(queue);
+		connection = cf.createConnection();
+		connection.setExceptionListener(this);
+
+		// Create sender-side Session and MessageProducer
+		sendSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		sender = sendSession.createProducer(queue);
+
+		return true;
 	}
 
 	/**
@@ -83,23 +88,24 @@ public class MessageSender implements ExceptionListener {
 	 * @throws EncryptException 
 	 * @throws IOException 
 	 */
-	public void sendMessage(String msg) throws JMSException, IOException  {
-		if(msg.trim().length() > 0 ) {
+	public boolean sendMessage(String msg) throws JMSException, IOException  {
+		if(doSend && (msg.trim().length() > 0)) {
 			// Create message
 			TextMessage message = sendSession.createTextMessage();
 			try {
 				initMessage(message, msg);
 				// Send message to queue
 				sender.send(message);
+				System.out.println("Sent message to ASB with JMSMessageID = " + message.getJMSMessageID());
+				message = null;
+				return true;
 			}catch (Exception e) {
-				// retry once more
-				initializeConnection();
-				initMessage(message, msg);
-				sender.send(message);
+				System.err.println(e.getMessage());
+				return false;
 			}
-			System.out.println("Sent message to ASB with JMSMessageID = " + message.getJMSMessageID());
-			message = null;
-		} 
+		} else {
+			return false;
+		}
     }
 
 	/**
@@ -139,16 +145,25 @@ public class MessageSender implements ExceptionListener {
    	@Override
 	public void onException(JMSException exception) {
 		System.err.println("Error in sender connection, Retrying to connect...");
-		/*try {
-			close();
-		} catch (JMSException e) {
-			System.err.println(e.getLocalizedMessage());
+		/*if(exception instanceof MessageProducerException){
+			System.err.println("MessageProducerException");
 		}*/
 		try {
-			initializeConnection();
-			System.out.println("Sender connection successful");
+			close();
 		} catch (JMSException e) {
-			e.printStackTrace();
+			// We will get an Exception anyway, since the connection to the server is
+            // broken, but close() frees up resources associated with the connection
+		}
+		try {
+			boolean setupOK = initializeConnection();
+			if(setupOK) {
+				doSend = true;
+				System.out.println("Sender connection successful");
+				System.out.println("Client ID: " + connection.getClientID());
+			}
+		} catch (JMSException e) {
+			System.err.println("Unable to re-connect");
+			doSend = false;
 		}
 	}
 

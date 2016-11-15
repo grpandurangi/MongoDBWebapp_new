@@ -129,6 +129,32 @@ public class FrontController extends HttpServlet {
 				request.setAttribute("error", "Unable to add person.");
 			}
 		}
+		if(uri.endsWith("editPersonPage.do")) {
+			String id = request.getParameter("id");
+			if (id == null || "".equals(id)) {
+				throw new ServletException("id missing for edit operation");
+			}
+			System.out.println("Person edit requested with id=" + id);
+			Person p = new Person();
+			p.setId(id);
+			try {
+				p = personDAO.readPerson(p);
+				request.setAttribute("person", p);
+				target = "/editPerson.jsp";
+			} catch (DAOException e) {
+				e.printStackTrace();
+				target = "editPersonPage.do";
+				request.setAttribute("error", "Unable to edit");
+			}
+		}
+		if(uri.endsWith("editPerson.do")) {
+			try {
+				target = sendEditPersonDetail(request, response);
+			} catch (NamingException | JMSException e ) {
+				e.printStackTrace();
+				request.setAttribute("error", "Something went wrong");
+			}
+		}
 		if(uri.endsWith("deletePerson.do")) {
 			try {
 				target = sendDelPersonDetail(request, response);
@@ -199,14 +225,6 @@ public class FrontController extends HttpServlet {
 				request.setAttribute("error", "No data found");
 			}
 			target = "/searchPerson.jsp";
-		}
-		if(uri.endsWith("editPerson.do")) {
-			try {
-				target = sendEditPersonDetail(request, response);
-			} catch (NamingException | JMSException e ) {
-				e.printStackTrace();
-				request.setAttribute("error", "Something went wrong");
-			}
 		}
 		RequestDispatcher rd = request.getRequestDispatcher(target);
 		rd.forward(request, response);
@@ -279,9 +297,6 @@ public class FrontController extends HttpServlet {
 
 			return "/editPerson.jsp";
 		} else {
-			MongoClient mongo = (MongoClient) request.getServletContext()
-					.getAttribute("MONGO_CLIENT");
-			MongoDBPersonDAO personDAO = new MongoDBPersonDAO(mongo);
 			Person p = new Person();
 			p.setId(id);
 			p.setName(name);
@@ -297,11 +312,12 @@ public class FrontController extends HttpServlet {
 			try {
 				p2 = personDAO.readPerson(p);
 				request.setAttribute("person", p2);
+				return "/searchPerson.jsp";
 			} catch (DAOException e) {
 				e.printStackTrace();
 				request.setAttribute("error", "Something went wrong");
+				return "/editPerson.jsp";
 			}
-			return "/searchPerson.jsp";
 		}
 	}
 

@@ -158,29 +158,37 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 
 	private void initializeConnection() throws JMSException {
 		// Create Connection
-        connection = cf.createConnection();
-        connection.setExceptionListener(this);
-		
+		connection = cf.createConnection();
+		connection.setExceptionListener(this);
+
 		// Create receiver-side Session, MessageConsumer,and MessageListener
-        receiveSession = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-        receiver = receiveSession.createConsumer(queue);
-        receiver.setMessageListener(this);
-        connection.start();
+		receiveSession = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+		receiver = receiveSession.createConsumer(queue);
+		receiver.setMessageListener(this);
+		connection.start();
 	}
 
 	@Override
-	public void onException(JMSException arg0) {
+	public void onException(JMSException exception) {
 		System.err.println("Error in receiver connection, Retrying to connect...");
-		/*try {
+		System.err.println(exception.getErrorCode());
+		try {
+			connection.setExceptionListener(null);
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+		try {
 			close();
 		} catch (JMSException ex) {
-			System.err.println(ex.getLocalizedMessage());
-		}*/
+			// We will get an Exception anyway, since the connection to the server is
+            // broken, but close() frees up resources associated with the connection
+		}
 		try {
 			initializeConnection();
 			System.out.println("Receiver connection successful");
+			System.out.println("Client ID: " + connection.getClientID());
 		} catch (JMSException e1) {
-			e1.printStackTrace();
+			System.err.println("Unable to re-connect");
 		}
 	}
 	

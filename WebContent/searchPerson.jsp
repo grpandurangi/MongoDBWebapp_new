@@ -25,7 +25,6 @@ table,th,td {
 		<strong style="color: green;"><c:out
 				value="${requestScope.success}"></c:out></strong>
 	</c:if>
-	<c:url value="/editPerson" var="editURL"></c:url>
 	<%-- Edit Request --%>
 	<form action="search.do" method="post">
 		
@@ -46,10 +45,10 @@ table,th,td {
 					<th>Edit</th>
 					<th>Delete</th>
 				</tr>
-				<c:url value="/editPerson" var="editURL">
+				<c:url value="/editPersonPage.do" var="editURL">
 					<c:param name="id" value="${person.id}"></c:param>
 				</c:url>
-				<c:url value="/deletePerson" var="deleteURL">
+				<c:url value="/deletePerson.do" var="deleteURL">
 					<c:param name="id" value="${person.id}"></c:param>
 				</c:url>
 				<tr>

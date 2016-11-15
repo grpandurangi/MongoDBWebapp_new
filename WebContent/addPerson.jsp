@@ -21,7 +21,6 @@ function goHome(form) {
 	form.action = "home.do";
 	form.method = "get";
 	form.submit();
-	//document.getElementById("addPerson").submit();// Form submission
 }
 </script>
 </head>
@@ -50,9 +49,6 @@ function goHome(form) {
 			<input type="submit" class="button" value="Add Person">
 			<input type="button" class="button backButton" value="Back" onclick="goHome(this.form);">
 		</form>
-		<!-- <form action='home.do' method="get">
-			<input type="submit" class="button backButton" value="Back">
-		</form> -->
 	</c:if>
 </center>
 </body>

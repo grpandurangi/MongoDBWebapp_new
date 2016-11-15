@@ -26,19 +26,7 @@ table,th,td {
 		<strong style="color: green;"><c:out
 				value="${requestScope.success}"></c:out></strong>
 	</c:if>
-	<c:url value="/editPerson" var="editURL"></c:url>
-	<%-- Edit Request --%>
-	<c:if test="${requestScope.person ne null}">
-		<form action='<c:out value="${editURL}"></c:out>' method="post">
-			<label><span>ID: </span><input type="text" value="${requestScope.person.id}"
-				readonly="readonly" name="id"></label><br>
-			<label><span>Person Name: </span><input
-				type="text" value="${requestScope.person.name}" name="name"></label><br>
-			<label><span>Country: </span><input type="text" value="${requestScope.person.country}"
-				name="country"></label><br> 
-				<input type="submit" class="button" value="Edit Person">
-		</form>
-	</c:if>
+	
 	<form action='home.do' method="get">
 		<input type="submit" class="button" value="Back">
 	</form>
@@ -54,7 +42,7 @@ table,th,td {
 					<th>Delete</th>
 				</tr>
 				<c:forEach items="${requestScope.persons}" var="person">
-					<c:url value="/editPerson" var="editURL">
+					<c:url value="/editPersonPage.do" var="editURL">
 						<c:param name="id" value="${person.id}"></c:param>
 					</c:url>
 					<c:url value="/deletePerson.do" var="deleteURL">
