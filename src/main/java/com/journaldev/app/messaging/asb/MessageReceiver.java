@@ -171,12 +171,6 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 	@Override
 	public void onException(JMSException exception) {
 		System.err.println("Error in receiver connection, Retrying to connect...");
-		System.err.println(exception.getErrorCode());
-		try {
-			connection.setExceptionListener(null);
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
 		try {
 			close();
 		} catch (JMSException ex) {
@@ -186,7 +180,6 @@ public class MessageReceiver implements MessageListener, ExceptionListener {
 		try {
 			initializeConnection();
 			System.out.println("Receiver connection successful");
-			System.out.println("Client ID: " + connection.getClientID());
 		} catch (JMSException e1) {
 			System.err.println("Unable to re-connect");
 		}

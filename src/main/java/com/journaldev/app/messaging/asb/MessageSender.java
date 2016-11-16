@@ -159,7 +159,6 @@ public class MessageSender implements ExceptionListener {
 			if(setupOK) {
 				doSend = true;
 				System.out.println("Sender connection successful");
-				System.out.println("Client ID: " + connection.getClientID());
 			}
 		} catch (JMSException e) {
 			System.err.println("Unable to re-connect");
