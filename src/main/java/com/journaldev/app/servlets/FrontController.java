@@ -70,12 +70,11 @@ public class FrontController extends HttpServlet {
 		}
 		
 		//Initialize MQ sender
-		try {
+		/*try {
 			mqSender = new MQMessageSender();
 		} catch (MQException | IOException e1) {
 			e1.printStackTrace();
 		}
-		
 		
 		try {
 			//Initialize MQ receiver
@@ -98,7 +97,6 @@ public class FrontController extends HttpServlet {
 								System.err.println(e.getLocalizedMessage());
 							}
 						}
-//						mqReceiver.close();
 					}
 				}
 			});
@@ -107,7 +105,7 @@ public class FrontController extends HttpServlet {
 			
 		} catch (IOException | MQException e) {
 			e.printStackTrace();
-		}
+		}*/
     }
 
 	/**
@@ -150,7 +148,7 @@ public class FrontController extends HttpServlet {
 		if(uri.endsWith("editPerson.do")) {
 			try {
 				target = sendEditPersonDetail(request, response);
-			} catch (NamingException | JMSException e ) {
+			} catch (JMSException e ) {
 				e.printStackTrace();
 				request.setAttribute("error", "Something went wrong");
 			}
@@ -158,7 +156,7 @@ public class FrontController extends HttpServlet {
 		if(uri.endsWith("deletePerson.do")) {
 			try {
 				target = sendDelPersonDetail(request, response);
-			} catch (NamingException | JMSException e) {
+			} catch (JMSException e) {
 				e.printStackTrace();
 				request.setAttribute("error", "Unable to delete person.");
 			}
@@ -253,7 +251,7 @@ public class FrontController extends HttpServlet {
 		}
 	}
 	
-	private String sendDelPersonDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NamingException, JMSException {
+	private String sendDelPersonDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, JMSException, IOException {
 		String id = request.getParameter("id");
 		if (id == null || "".equals(id)) {
 			throw new ServletException("id missing for delete operation");
@@ -263,20 +261,14 @@ public class FrontController extends HttpServlet {
 		p.setOperation(OPERATION.DELETE);
 		
 		String msg = gson.toJson(p);
-		try {
-			mqSender.sendMessage(msg);
-		} catch (MQException e) {
-			System.err.println(e.getLocalizedMessage());
-			request.setAttribute("error", "Unable to send message to MQ");
-			throw new ServletException(e.getLocalizedMessage(), e);
-		}
+		messageSender.sendMessage(msg);
 		System.out.println("Person will be deleted shorlty with id=" + id);
 		request.setAttribute("success", "Person will be deleted shorlty");
 
 		return "/index.jsp";
 	}
 
-	private String sendEditPersonDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NamingException, JMSException {
+	private String sendEditPersonDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, JMSException {
 		
 		String id = request.getParameter("id"); // keep it non-editable in UI
 		if (id == null || "".equals(id)) {

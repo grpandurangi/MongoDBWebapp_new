@@ -19,11 +19,9 @@ import com.mongodb.MongoClient;
 public class MongoDBPersonDAO {
 
 	private DBCollection col;
-//	private MongoClient mongo;
 
 	@SuppressWarnings("deprecation")
 	public MongoDBPersonDAO(MongoClient mongo) {
-//		this.mongo = mongo;
 		this.col = mongo.getDB(System.getProperty("MONGODB_AUTHDB")).getCollection("Persons");
 	}
 
