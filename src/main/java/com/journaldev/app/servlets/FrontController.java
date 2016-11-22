@@ -70,7 +70,7 @@ public class FrontController extends HttpServlet {
 		}
 		
 		//Initialize MQ sender
-		/*try {
+		try {
 			mqSender = new MQMessageSender();
 		} catch (MQException | IOException e1) {
 			e1.printStackTrace();
@@ -105,7 +105,7 @@ public class FrontController extends HttpServlet {
 			
 		} catch (IOException | MQException e) {
 			e.printStackTrace();
-		}*/
+		}
     }
 
 	/**
@@ -156,7 +156,7 @@ public class FrontController extends HttpServlet {
 		if(uri.endsWith("deletePerson.do")) {
 			try {
 				target = sendDelPersonDetail(request, response);
-			} catch (JMSException e) {
+			} catch (MQException e) {
 				e.printStackTrace();
 				request.setAttribute("error", "Unable to delete person.");
 			}
@@ -251,7 +251,7 @@ public class FrontController extends HttpServlet {
 		}
 	}
 	
-	private String sendDelPersonDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, JMSException, IOException {
+	private String sendDelPersonDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, MQException {
 		String id = request.getParameter("id");
 		if (id == null || "".equals(id)) {
 			throw new ServletException("id missing for delete operation");
@@ -261,7 +261,7 @@ public class FrontController extends HttpServlet {
 		p.setOperation(OPERATION.DELETE);
 		
 		String msg = gson.toJson(p);
-		messageSender.sendMessage(msg);
+		mqSender.sendMessage(msg);
 		System.out.println("Person will be deleted shorlty with id=" + id);
 		request.setAttribute("success", "Person will be deleted shorlty");
 
