@@ -224,6 +224,16 @@ public class FrontController extends HttpServlet {
 			}
 			target = "/searchPerson.jsp";
 		}
+		if(uri.endsWith("serverError.do")) {
+			try {
+				throw new Exception("Server error created to check Alert and Respond");
+			} catch (Exception e) {
+				throw new ServletException(e.getLocalizedMessage(), e);
+			}
+		}
+		if(uri.endsWith("pageNotFound.do")) {
+			target = "dummyPage.jsp";
+		}
 		RequestDispatcher rd = request.getRequestDispatcher(target);
 		rd.forward(request, response);
 	}

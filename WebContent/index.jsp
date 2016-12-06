@@ -22,6 +22,8 @@ table,th,td {
 	<a href="viewPersonPage.do">View Persons</a><br/>
 	<a href="searchPersonPage.do">Search Person</a><br/>
 	<!-- <a href="updateCountryPage.do">Edit Country</a><br/> -->
+	<a href="pageNotFound.do">404 Page not found Error</a><br/>
+	<a href="serverError.do">Server Error</a><br/>
 	<br/>
 	
 	<c:if test="${requestScope.success ne null}">
